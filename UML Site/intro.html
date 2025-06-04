@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UML Quest - Introdução</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00ff88;
+      --primary-dark: #00cc6a;
+      --secondary: #00b4d8;
+      --accent: #ff006e;
+      --dark: #0d1b2a;
+      --light: #e2eafc;
+      --neon-glow: 0 0 10px var(--primary), 0 0 20px var(--primary);
+    }
+    
+    body {
+      margin: 0;
+      background-color: var(--dark);
+      position: relative;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      font-family: 'Oxanium', sans-serif;
+      color: var(--light);
+    }
+    
+    video {
+      position: absolute;
+      width: 100%;
+      height: 100vh;
+      object-fit: cover;
+      z-index: -1;
+      opacity: 0.7;
+      display: none;
+    }
+    
+    #intro {
+      text-align: center;
+      padding: 2rem;
+      background: rgba(13, 27, 42, 0.8);
+      border-radius: 16px;
+      max-width: 800px;
+      margin: 2rem;
+      backdrop-filter: blur(5px);
+      border: 2px solid var(--primary);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transform: scale(0.95);
+      opacity: 0;
+      animation: fadeIn 0.8s ease-out forwards;
+    }
+    
+    @keyframes fadeIn {
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+    
+    .intro-title {
+      font-family: 'Press Start 2P', cursive;
+      color: var(--primary);
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      text-shadow: var(--neon-glow);
+    }
+    
+    .intro-text {
+      font-size: 1.2rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+      color: #c1d3fe;
+    }
+    
+    .btn {
+      font-size: 1.2rem;
+      padding: 15px 40px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      margin: 10px;
+      color: white;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 255, 136, 0.5);
+      letter-spacing: 2px;
+    }
+    
+    .btn:active {
+      transform: translateY(1px);
+    }
+    
+    .btn::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+    
+    .btn:hover::after {
+      transform: translateX(100%);
+    }
+    
+    #skipButton {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: rgba(255, 0, 110, 0.8);
+      display: none;
+      z-index: 100;
+    }
+    
+    #skipButton:hover {
+      background: rgba(255, 0, 110, 1);
+    }
+    
+    .particle {
+      position: absolute;
+      background-color: rgba(0, 180, 216, 0.5);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    @media (max-width: 768px) {
+      .intro-title {
+        font-size: 1.8rem;
+      }
+      
+      .intro-text {
+        font-size: 1rem;
+      }
+      
+      .btn {
+        font-size: 1rem;
+        padding: 12px 30px;
+      }
+      
+      #skipButton {
+        bottom: 20px;
+        right: 20px;
+        padding: 10px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="intro">
+    <h1 class="intro-title">UML QUEST</h1>
+    <p class="intro-text">Prepare-se para uma jornada épica no mundo da modelagem de software! Assista à introdução para conhecer a história ou comece diretamente sua aventura.</p>
+    <button class="btn" onclick="playVideo()">▶ Assistir Introdução</button>
+    <button class="btn" onclick="window.location.href='game.html'">Iniciar Jogo</button>
+  </div>
+
+  <video id="introVideo" controls playsinline preload="none">
+    <source src="video/Video1.mp4" type="video/mp4" />
+    Seu navegador não suporta vídeo.
+  </video>
+
+  <button id="skipButton" class="btn" onclick="skipVideo()">Pular Vídeo</button>
+
+  <script>
+    const introDiv = document.getElementById('intro');
+    const video = document.getElementById('introVideo');
+    const skipBtn = document.getElementById('skipButton');
+
+    // Cria partículas de fundo
+    function createParticles() {
+      const colors = ['#00ff88', '#00b4d8', '#ff006e', '#ffbe0b'];
+      
+      for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        
+        const size = Math.random() * 5 + 2;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.backgroundColor = color;
+        particle.style.left = `${Math.random() * 100}vw`;
+        particle.style.top = `${Math.random() * 100}vh`;
+        particle.style.opacity = Math.random() * 0.5 + 0.1;
+        
+        document.body.appendChild(particle);
+        animateParticle(particle);
+      }
+    }
+    
+    function animateParticle(element) {
+      let x = parseFloat(element.style.left);
+      let y = parseFloat(element.style.top);
+      const xSpeed = (Math.random() - 0.5) * 0.3;
+      const ySpeed = (Math.random() - 0.5) * 0.3;
+      
+      function move() {
+        x += xSpeed;
+        y += ySpeed;
+        
+        if (x > 100) x = 0;
+        if (x < 0) x = 100;
+        if (y > 100) y = 0;
+        if (y < 0) y = 100;
+        
+        element.style.left = `${x}vw`;
+        element.style.top = `${y}vh`;
+        
+        requestAnimationFrame(move);
+      }
+      
+      move();
+    }
+
+    function playVideo() {
+      introDiv.style.display = 'none';
+      video.style.display = 'block';
+      skipBtn.style.display = 'block';
+      video.play().catch(e => console.log("Erro ao reproduzir vídeo:", e));
+    }
+
+    function skipVideo() {
+      window.location.href = 'game.html';
+    }
+
+    // Quando o vídeo terminar, vai para o jogo
+    video.onended = () => {
+      window.location.href = 'game.html';
+    };
+
+    // Inicia as partículas quando a página carrega
+    window.addEventListener('DOMContentLoaded', createParticles);
+  </script>
+</body>
+</html>

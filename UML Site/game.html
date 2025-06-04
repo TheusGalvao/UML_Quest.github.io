@@ -1,0 +1,554 @@
+<!DOCTYPE html> 
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UML Quest - RPG Quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00ff88;
+      --primary-dark: #00cc6a;
+      --secondary: #00b4d8;
+      --accent: #ff006e;
+      --dark: #0d1b2a;
+      --light: #e2eafc;
+      --neon-glow: 0 0 10px var(--primary), 0 0 20px var(--primary);
+    }
+    
+    body {
+      font-family: 'Oxanium', sans-serif;
+      background: radial-gradient(circle at center, #1b263b, #0d1b2a);
+      color: var(--light);
+      text-align: center;
+      padding: 20px;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    /* Partículas de fundo */
+    .particle {
+      position: absolute;
+      background-color: rgba(0, 180, 216, 0.5);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    #game {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(13, 27, 42, 0.8);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      border: 2px solid var(--primary);
+      position: relative;
+    }
+    
+    /* Cantos pixelados */
+    .pixel-corner {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border: 3px solid var(--secondary);
+    }
+    
+    .top-left {
+      top: 10px;
+      left: 10px;
+      border-right: none;
+      border-bottom: none;
+    }
+    
+    .top-right {
+      top: 10px;
+      right: 10px;
+      border-left: none;
+      border-bottom: none;
+    }
+    
+    .bottom-left {
+      bottom: 10px;
+      left: 10px;
+      border-right: none;
+      border-top: none;
+    }
+    
+    .bottom-right {
+      bottom: 10px;
+      right: 10px;
+      border-left: none;
+      border-top: none;
+    }
+    
+    .game-title {
+      font-family: 'Press Start 2P', cursive;
+      color: var(--primary);
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      text-shadow: var(--neon-glow);
+    }
+    
+    img {
+      width: 150px;
+      height: auto;
+      display: inline-block;
+      filter: drop-shadow(0 0 5px rgba(0, 255, 136, 0.5));
+      transition: transform 0.3s;
+    }
+    
+    img:hover {
+      transform: scale(1.05);
+    }
+    
+    #enemy-area,
+    #player-area {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      margin-bottom: 15px;
+      position: relative;
+    }
+    
+    .character-label {
+      position: absolute;
+      font-weight: bold;
+      color: var(--secondary);
+      text-shadow: 0 0 5px rgba(0, 180, 216, 0.5);
+    }
+    
+    #enemy-area .character-label {
+      top: -20px;
+      left: 20px;
+    }
+    
+    #player-area .character-label {
+      bottom: -20px;
+      right: 20px;
+    }
+    
+    .health-bar {
+      width: 100%;
+      height: 25px;
+      background: #3a0ca3;
+      border-radius: 15px;
+      margin: 10px 0;
+      border: 2px solid var(--primary);
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    .health-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      border-radius: 15px;
+      transition: width 0.3s;
+      position: relative;
+    }
+    
+    .health-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transform: translateX(-100%);
+      animation: healthShine 3s infinite;
+    }
+    
+    @keyframes healthShine {
+      100% { transform: translateX(100%); }
+    }
+    
+    #question {
+      font-size: 1.2rem;
+      margin: 25px 0;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      border-left: 3px solid var(--accent);
+    }
+    
+    #options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    
+    #options button {
+      margin: 0;
+      padding: 12px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: rgba(0, 180, 216, 0.2);
+      border: 2px solid var(--secondary);
+      color: var(--light);
+      border-radius: 8px;
+      font-family: 'Oxanium', sans-serif;
+    }
+    
+    #options button:hover {
+      background: rgba(0, 180, 216, 0.4);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0, 180, 216, 0.3);
+    }
+    
+    #feedback {
+      margin-top: 20px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      opacity: 0;
+      transition: all 0.5s ease;
+      min-height: 30px;
+    }
+    
+    #feedback.show {
+      opacity: 1;
+    }
+
+    /* Animação de shake */
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      20% { transform: translateX(-5px); }
+      40% { transform: translateX(5px); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(5px); }
+      100% { transform: translateX(0); }
+    }
+
+    .shake {
+      animation: shake 0.5s;
+    }
+
+    /* Fade out para inimigos derrotados */
+    .fadeOut {
+      animation: fadeOut 1s forwards;
+    }
+    
+    @keyframes fadeOut {
+      to {
+        opacity: 0;
+        transform: scale(0.8) rotate(10deg);
+      }
+    }
+
+    /* Botão reiniciar */
+    #restartBtn {
+      display: none;
+      margin: 25px auto 0;
+      padding: 12px 30px;
+      font-size: 1.1rem;
+      background: linear-gradient(135deg, var(--accent), #ff006e);
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s;
+      box-shadow: 0 5px 15px rgba(255, 0, 110, 0.4);
+    }
+    
+    #restartBtn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(255, 0, 110, 0.6);
+    }
+    
+    /* Responsividade */
+    @media (max-width: 768px) {
+      #game {
+        padding: 20px;
+      }
+      
+      .game-title {
+        font-size: 1.5rem;
+      }
+      
+      img {
+        width: 120px;
+      }
+      
+      #options {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      #game {
+        padding: 15px;
+      }
+      
+      .game-title {
+        font-size: 1.2rem;
+      }
+      
+      img {
+        width: 100px;
+      }
+      
+      #question {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Partículas de fundo serão adicionadas via JS -->
+  
+  <div id="game">
+    <div class="pixel-corner top-left"></div>
+    <div class="pixel-corner top-right"></div>
+    <div class="pixel-corner bottom-left"></div>
+    <div class="pixel-corner bottom-right"></div>
+    
+    <h1 class="game-title">UML QUEST</h1>
+    
+    <div id="enemy-area">
+      <span class="character-label">INIMIGO</span>
+      <img src="img/monster1.png" id="enemy" alt="Inimigo" />
+    </div>
+    <div class="health-bar">
+      <div id="enemy-health" class="health-fill" style="width: 100%"></div>
+    </div>
+
+    <div id="player-area">
+      <span class="character-label">HERÓI</span>
+      <img src="img/hero.png" id="player" alt="Jogador" />
+    </div>
+    <div class="health-bar">
+      <div id="player-health" class="health-fill" style="width: 100%"></div>
+    </div>
+
+    <div id="question">Carregando pergunta...</div>
+    <div id="options"></div>
+    <div id="feedback"></div>
+
+    <button id="restartBtn">Jogar Novamente</button>
+  </div>
+
+  <script>
+    // Sons carregados para efeitos
+    const soundHit = new Audio('sounds/hit.mp3');
+    const soundError = new Audio('sounds/error.mp3');
+    const soundVictory = new Audio('sounds/victory.mp3');
+
+    const perguntas = [
+      {
+        texto: "Mostra ordem entre objetos no tempo",
+        correta: "Diagrama de Sequência",
+        opcoes: ["Diagrama de Estados", "Diagrama de Sequência", "Diagrama de Atividades", "Diagrama de Comunicação"]
+      },
+      {
+        texto: "Mostra mudanças de estado baseado em eventos",
+        correta: "Diagrama de Estados",
+        opcoes: ["Diagrama de Atividades", "Diagrama de Sequência", "Diagrama de Estados", "Diagrama de Classes"]
+      },
+      {
+        texto: "Representa fluxo de processos com decisões",
+        correta: "Diagrama de Atividades",
+        opcoes: ["Diagrama de Casos de Uso", "Diagrama de Atividades", "Diagrama de Componentes", "Diagrama de Sequência"]
+      },
+      {
+        texto: "Mostra quem colabora com quem, estrutura",
+        correta: "Diagrama de Comunicação",
+        opcoes: ["Diagrama de Pacotes", "Diagrama de Classes", "Diagrama de Sequência", "Diagrama de Comunicação"]
+      }
+    ];
+
+    const inimigos = [
+      "img/monster1.png",
+      "img/monster2.png",
+      "img/monster3.png",
+      "img/monster4.png"
+    ];
+
+    let indice = 0;
+    let vidaPlayer = 100;
+    let vidaInimigo = 100;
+
+    const questionEl = document.getElementById('question');
+    const optionsEl = document.getElementById('options');
+    const feedbackEl = document.getElementById('feedback');
+    const playerHealthEl = document.getElementById('player-health');
+    const enemyHealthEl = document.getElementById('enemy-health');
+    const enemyImgEl = document.getElementById('enemy');
+    const restartBtn = document.getElementById('restartBtn');
+
+    // Cria partículas de fundo
+    function createParticles() {
+      const colors = ['#00ff88', '#00b4d8', '#ff006e', '#ffbe0b'];
+      
+      for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        
+        const size = Math.random() * 5 + 2;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.backgroundColor = color;
+        particle.style.left = `${Math.random() * 100}vw`;
+        particle.style.top = `${Math.random() * 100}vh`;
+        particle.style.opacity = Math.random() * 0.5 + 0.1;
+        
+        document.body.appendChild(particle);
+        animateParticle(particle);
+      }
+    }
+    
+    function animateParticle(element) {
+      let x = parseFloat(element.style.left);
+      let y = parseFloat(element.style.top);
+      const xSpeed = (Math.random() - 0.5) * 0.3;
+      const ySpeed = (Math.random() - 0.5) * 0.3;
+      
+      function move() {
+        x += xSpeed;
+        y += ySpeed;
+        
+        if (x > 100) x = 0;
+        if (x < 0) x = 100;
+        if (y > 100) y = 0;
+        if (y < 0) y = 100;
+        
+        element.style.left = `${x}vw`;
+        element.style.top = `${y}vh`;
+        
+        requestAnimationFrame(move);
+      }
+      
+      move();
+    }
+
+    function atualizarBarra(el, vida) {
+      el.style.width = vida + '%';
+    }
+
+    function mostrarFeedback(texto, sucesso = true) {
+      feedbackEl.textContent = texto;
+      feedbackEl.classList.add('show');
+      feedbackEl.style.color = sucesso ? 'var(--primary)' : 'var(--accent)';
+      feedbackEl.style.textShadow = sucesso ? '0 0 10px var(--primary)' : '0 0 10px var(--accent)';
+
+      // Remove o feedback após 1.5s
+      setTimeout(() => {
+        feedbackEl.classList.remove('show');
+      }, 1500);
+    }
+
+    function carregarPergunta() {
+      // Se acabou perguntas
+      if (indice >= perguntas.length) {
+        questionEl.textContent = "Parabéns! Você derrotou todos os inimigos UML!";
+        optionsEl.innerHTML = '';
+        feedbackEl.textContent = '';
+        enemyImgEl.style.display = 'none';
+        soundVictory.play(); // Toca som de vitória
+        restartBtn.style.display = 'inline-block'; // Mostrar botão para reiniciar após vitória
+        return;
+      }
+
+      // Mostra inimigo atual
+      enemyImgEl.src = inimigos[indice];
+      enemyImgEl.style.opacity = 1;
+      enemyImgEl.style.display = 'inline';
+      enemyImgEl.classList.remove('fadeOut', 'shake');
+
+      vidaInimigo = 100;
+      atualizarBarra(enemyHealthEl, vidaInimigo);
+
+      const atual = perguntas[indice];
+      questionEl.textContent = atual.texto;
+      optionsEl.innerHTML = '';
+
+      atual.opcoes.forEach(opcao => {
+        const btn = document.createElement('button');
+        btn.textContent = opcao;
+        btn.onclick = () => verificarResposta(opcao);
+        optionsEl.appendChild(btn);
+      });
+
+      feedbackEl.textContent = '';
+      restartBtn.style.display = 'none'; // Esconde botão enquanto joga
+    }
+
+    function verificarResposta(resposta) {
+      const correta = perguntas[indice].correta;
+
+      if (resposta === correta) {
+        // Toca som de acerto
+        soundHit.currentTime = 0;
+        soundHit.play();
+
+        mostrarFeedback("✓ Resposta Correta! Inimigo derrotado!", true);
+
+        // Animação do inimigo: shake + fadeOut
+        enemyImgEl.classList.add('shake');
+
+        setTimeout(() => {
+          enemyImgEl.classList.add('fadeOut');
+        }, 400); // espera o shake quase acabar
+
+        vidaInimigo = 0;
+        atualizarBarra(enemyHealthEl, vidaInimigo);
+
+        setTimeout(() => {
+          indice++;
+          carregarPergunta();
+        }, 1400);
+
+      } else {
+        // Toca som de erro
+        soundError.currentTime = 0;
+        soundError.play();
+
+        mostrarFeedback("✗ Resposta Incorreta! Você levou dano.", false);
+
+        vidaPlayer -= 30;
+        if (vidaPlayer < 0) vidaPlayer = 0;
+        atualizarBarra(playerHealthEl, vidaPlayer);
+
+        if (vidaPlayer <= 0) {
+          questionEl.textContent = "Game Over! UML te derrotou.";
+          optionsEl.innerHTML = '';
+          feedbackEl.textContent = '';
+          enemyImgEl.style.display = 'none';
+
+          // Mostrar botão para reiniciar quando perder
+          restartBtn.style.display = 'inline-block';
+        }
+      }
+    }
+
+    // Função para reiniciar o jogo
+    function resetarJogo() {
+      indice = 0;
+      vidaPlayer = 100;
+      vidaInimigo = 100;
+      restartBtn.style.display = 'none';  // Esconde o botão ao reiniciar
+      enemyImgEl.style.display = 'inline';
+      atualizarBarra(playerHealthEl, vidaPlayer);
+      atualizarBarra(enemyHealthEl, vidaInimigo);
+      feedbackEl.textContent = '';
+      carregarPergunta();
+    }
+
+    restartBtn.addEventListener('click', resetarJogo);
+
+    // Inicializa o jogo
+    window.addEventListener('DOMContentLoaded', () => {
+      createParticles();
+      carregarPergunta();
+    });
+  </script>
+</body>
+</html>
